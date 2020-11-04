@@ -14,34 +14,29 @@ namespace BookStore
 
     interface IBook
     {
-        BookTitle Title { get; }
+        string Title { get; }
         BookType Type { get; }
         decimal Price { get; }
-        Author Author { get; }
+        string Author { get; }
         int ID { get; }
 
     }
-    enum Author
-    {
-        GeorgeRaymondRichardMartin,
-        JohnRonaldReuelTolkien
-    }
 
-    enum BookTitle
-    {
-        GameOfTrones,
-        TheSunAlsoRises,
-        MartinEden
-    }
+    //enum BookTitle
+    //{
+    //    GameOfTrones,
+    //    TheSunAlsoRises,
+    //    MartinEden
+    //}
     class Book : IBook
     {
         private static int booksID = 0;
-        public BookTitle Title { get; private set; }
+        public string Title { get; private set; }
         public BookType Type { get; private set; }
         public decimal Price { get; private set; }
-        public Author Author { get; private set; }
+        public string Author { get; private set; }
         public int ID { get; private set; }
-        public Book(BookTitle name, BookType type, decimal price, Author author)
+        public Book(string name, BookType type, decimal price, string author)
         {
             ID = booksID;
             booksID++;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,11 +12,13 @@ namespace BookStore
         private List<IBook> books;
         private decimal priceSumm;
         private decimal deliver;
+        private decimal deliverSumm;
         public ShoppingCart()
         {
             deliver = 200;
             books = new List<IBook>();
             priceSumm = 0;
+            deliverSumm = 0;
         }
         public decimal GetCheck() => priceSumm + deliver;
 
@@ -23,18 +26,20 @@ namespace BookStore
         {
             books.Add(book);
             priceSumm += book.Price;
-            if (priceSumm > 1000)
+            if (book.Type == BookType.paperBook)
+                deliverSumm += book.Price;
+            if (deliverSumm > 1000)
                 deliver = 0;
         }
 
-        public void AddPromo(IPromo promo, IBook book)
+        public void AddPromo(IPromo promo)
         {
-            var find_element = books.Contains(book);
+            var find_element = books.Contains(promo.Book);
             if (find_element)
             {
-                var PromoSumm = promo.CalculateSale(book);
-                if (Enum.IsDefined(typeof(FreeDelivery), promo.Code))
-                    deliver -= PromoSumm;
+                var PromoSumm = promo.CalculateSale();
+                if (promo.PromoType == PromoType.FreeDelivery)
+                    deliver = 0;
                 else
                     priceSumm -= PromoSumm;
             }
@@ -44,22 +49,43 @@ namespace BookStore
 
         public void CheckEvent()
         {
-            var authorsBook = new Dictionary<Author, int>();
+            var authorsBook = new Dictionary<string, int>();
+            var eBookAuthor = new Dictionary<string, List<IBook>>();
             foreach(var book in books)
             {
                 if (book.Type != BookType.paperBook)
-                    continue;
-                if (!authorsBook.ContainsKey(book.Author))
                 {
-                    authorsBook[book.Author] = 1;
+                    if (authorsBook[book.Author] > 1)
+                    {
+                        if (!eBookAuthor.ContainsKey(book.Author))
+                        {
+                            eBookAuthor[book.Author] = new List<IBook>
+                            {
+                                book
+                            };
+                        }
+                        else
+                            eBookAuthor[book.Author].Add(book);
+                    }
+
                 }
                 else
-                    authorsBook[book.Author] += 1;
+                {
+                    if (!authorsBook.ContainsKey(book.Author))
+                    {
+                        authorsBook[book.Author] = 1;
+                    }
+                    else
+                        authorsBook[book.Author] += 1;
+                }
             }
             foreach(var author in authorsBook.Keys)
             {
                 if (authorsBook[author] >= 2)
+                {
                     Console.WriteLine("Вы купили две бумажные книги автора {0}. в подарок вам полагается электронная книга этого автора", author);
+                    priceSumm -= eBookAuthor[author].Min(a => a.Price);
+                }
             }
         }
     }

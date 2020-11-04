@@ -6,28 +6,7 @@ using System.Threading.Tasks;
 
 namespace BookStore
 {
-    enum FreeBook
-    {
-        DRAGON,
-        MOTHER
-    }
-    enum SalePromoPercent
-    {
-        Tomat,
-        Trone
-    }
 
-    enum MoneySale
-    {
-        Zikkurat,
-        TOMAT12
-    }
-
-    enum FreeDelivery
-    {
-        ORK,
-        KOROVAN
-    }
     enum PromoType
     {
         FreeDelivery,
@@ -39,53 +18,46 @@ namespace BookStore
     {
         PromoType PromoType { get; }
         string Code { get; }
-        decimal CalculateSale(IBook book);
-    }
+        decimal CalculateSale();
+        public IBook Book { get; }
 
     class Promo : IPromo
     {
         public PromoType PromoType { get;  private set; }
         public string Code { get; private set; }
         private decimal Sale { get; set; }
-        public Promo(SalePromoPercent code, decimal sale)
+        public IBook Book { get; private set; }
+
+        private PromoType GetRpomoType(string code)
         {
-            Code = code.ToString();
-            Sale = sale;
-            PromoType = PromoType.SalePromoPercent;
+            // логика получения типа промокода из бд по коду (return заглушечный, чтобы глаза не мазолила ошибка)
+            return PromoType.FreeBook;
         }
-        public Promo(MoneySale code, decimal sale)
+        /// <summary>
+        /// Инициализация класса промокода
+        /// </summary>
+        /// <param name="code">промокод</param>
+        /// <param name="sale">размер скидки(число или процент, в зависимости от типа скидки). Скидка в процентах должна быть указана в диапазоне от 0 до 1</param>
+        /// <param name="book"> книга, связанная с промокодом. по умолчанию null так как бесплатная доставка не зависит от книги</param>
+        public Promo(string code, decimal sale, IBook book=null)
         {
-            Code = code.ToString();
+            Code = code;
             Sale = sale;
-            PromoType = PromoType.MoneySale;
+            PromoType = GetRpomoType(Code);
+            if (PromoType == PromoType.SalePromoPercent && Sale >= 1)
+                throw new ArgumentException("скидка должна быть указана в процентах от 0 до 1");
+            Book = book;
         }
-        public Promo(FreeBook code, decimal sale)
+        public decimal CalculateSale()
         {
-            Code = code.ToString();
-            Sale = sale;
-            PromoType = PromoType.FreeBook;
-        }
-        public Promo(FreeDelivery code, decimal sale)
-        {
-            Code = code.ToString();
-            Sale = sale;
-            PromoType = PromoType.FreeDelivery;
-        }
-        public decimal CalculateSale(IBook book)
-        {
-            switch ((int)PromoType)
+            return PromoType switch
             {
-                case 0:
-                    return 200;
-                case 1:
-                    return Sale;
-                case 2:
-                    return book.Price * Sale;
-                case 3:
-                    return book.Price;
-                default:
-                    return 0;
-            }
+                PromoType.FreeDelivery => 200,
+                PromoType.MoneySale => Sale,
+                PromoType.SalePromoPercent => Book.Price * Sale,
+                PromoType.FreeBook => Book.Price,
+                _ => 0,
+            };
         }
     }
 }
