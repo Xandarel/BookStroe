@@ -18,8 +18,9 @@ namespace BookStore
     {
         PromoType PromoType { get; }
         string Code { get; }
-        decimal CalculateSale();
         public IBook Book { get; }
+        decimal ActivatePromo(ShoppingCart shoppingCart);
+    }
 
     class Promo : IPromo
     {
@@ -54,10 +55,38 @@ namespace BookStore
             {
                 PromoType.FreeDelivery => 200,
                 PromoType.MoneySale => Sale,
-                PromoType.SalePromoPercent => Book.Price * Sale,
+                PromoType.SalePromoPercent => Sale,
                 PromoType.FreeBook => Book.Price,
                 _ => 0,
             };
+        }
+
+        public decimal ActivatePromo(ShoppingCart shoppingCart)
+        {
+            decimal result = 0;
+            var find_element = shoppingCart.Books.Contains(Book);
+            if (find_element)
+            {
+                switch (PromoType)
+                {
+                    case PromoType.FreeDelivery:
+                        if (shoppingCart.Deliver != 0)
+                            result += 200;
+                        break;
+                    case PromoType.MoneySale:
+                        result += Sale;
+                        break;
+                    case PromoType.SalePromoPercent:
+                        result += shoppingCart.ShoppingCartPrice * Sale;
+                        break;
+                    case PromoType.FreeBook:
+                        result += Book.Price;
+                        break;
+                }
+                return result;
+            }
+            else
+                return result;
         }
     }
 }

@@ -9,7 +9,8 @@ namespace BookStore
     enum BookType
     {
         paperBook,
-        eBook
+        eBook,
+        audioBook
     }
 
     interface IBook
@@ -22,12 +23,6 @@ namespace BookStore
 
     }
 
-    //enum BookTitle
-    //{
-    //    GameOfTrones,
-    //    TheSunAlsoRises,
-    //    MartinEden
-    //}
     class Book : IBook
     {
         private static int booksID = 0;
