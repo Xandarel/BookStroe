@@ -8,14 +8,17 @@ namespace BookStore
 {
     static class Events
     {
-        public static decimal FreeEBook(List<IBook> books, int numberPaperBook=2)
+        public delegate List<IBook> Event(List<IBook> books);
+        public static List<Event> events = new List<Event> { FreeEBook, FreeEBookWithAudiobook };
+        public static List<IBook> FreeEBook(List<IBook> books)
         {
+            int numberPaperBook = 2;
             var authorsBook = new Dictionary<string, int>();
             var eBookAuthor = new Dictionary<string, List<IBook>>();
             
             var paperBook = books.Where(x => x.Type == BookType.paperBook);
             var ebooks = books.Where(x => x.Type == BookType.eBook);
-            decimal result = 0;
+            var result = new List<IBook>();
 
             foreach (var paper in paperBook)
             {
@@ -40,21 +43,21 @@ namespace BookStore
             }
 
             foreach (var author in eBookAuthor.Keys)
-                result += eBookAuthor[author].Min(a => a.Price);
+                result.Add(eBookAuthor[author].OrderBy(a => a.Price).First());
 
             return result;
         }
 
-        public static decimal FreeEBookWithAudiobook(List<IBook> books)
+        public static List<IBook> FreeEBookWithAudiobook(List<IBook> books)
         {
-            decimal result = 0;
+            List<IBook> result = new List<IBook>();
             var audioBook = books.Where(x => x.Type == BookType.audioBook);
             var ebooks = books.Where(x => x.Type == BookType.eBook);
             foreach (var audio in audioBook)
             {
                 var coincidence = ebooks.Where(x => x.Title == audio.Title && x.Author == audio.Author);
                 foreach (var c in coincidence)
-                    result += c.Price;
+                    result.Add(c);
             }
             return result;
 

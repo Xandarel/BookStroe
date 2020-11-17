@@ -15,7 +15,7 @@ namespace BookStore
         private decimal deliver;
         bool checkCalculation;
 
-        public List<IBook> Books { get => books; }
+        public IReadOnlyList<IBook> Books { get => books; }
         public decimal ShoppingCartPrice { get => priceSumm; }
         public decimal Deliver { get => deliver; }
 
@@ -27,18 +27,14 @@ namespace BookStore
             priceSumm = 0;
             checkCalculation = false;
         }
+
+        private decimal CalculateDeliver() => books.Where(x => x.Type == BookType.paperBook).Sum(x => x.Price);
         public decimal GetCheck() 
         {
             if (!checkCalculation)
             {
                 priceSumm = 0;
-                decimal deliverSumm = 0;
-                foreach (var book in books)
-                {
-                    priceSumm += book.Price;
-                    if (book.Type == BookType.paperBook)
-                        deliverSumm += book.Price;
-                }
+                decimal deliverSumm = CalculateDeliver();
                 if (deliverSumm > 1000)
                     deliver = 0;
                 // Куплены только электронные книги. Доставка не нужна.
@@ -63,10 +59,14 @@ namespace BookStore
 
         public void AddPromo(IPromo promo) => codes.Add(promo);
 
-        public void CheckEvent()
+        private void CheckEvent()
         {
-            priceSumm -= Events.FreeEBook(books);
-            priceSumm -= Events.FreeEBookWithAudiobook(books);
+            var bookWithPromo = new List<IBook>();
+            foreach (var ce in Events.events)
+                bookWithPromo.AddRange(ce(books));
+            foreach (var bwp in bookWithPromo.Distinct())
+                priceSumm -= bwp.Price;
+                
         }
     }
 
