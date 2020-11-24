@@ -5,17 +5,21 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace BookStore
+
 {
-    static class Events
+    interface IEvent
     {
-        public delegate List<IBook> Event(List<IBook> books);
-        public static List<Event> events = new List<Event> { FreeEBook, FreeEBookWithAudiobook };
-        public static List<IBook> FreeEBook(List<IBook> books)
+        List<IBook> ActivateEvent(List<IBook> books);
+    }
+
+    class FreeEBook : IEvent
+    {
+        public List<IBook> ActivateEvent(List<IBook> books)
         {
             int numberPaperBook = 2;
             var authorsBook = new Dictionary<string, int>();
             var eBookAuthor = new Dictionary<string, List<IBook>>();
-            
+
             var paperBook = books.Where(x => x.Type == BookType.paperBook);
             var ebooks = books.Where(x => x.Type == BookType.eBook);
             var result = new List<IBook>();
@@ -47,8 +51,11 @@ namespace BookStore
 
             return result;
         }
+    }
 
-        public static List<IBook> FreeEBookWithAudiobook(List<IBook> books)
+    class FreeEBookWithAudiobook : IEvent
+    {
+        public List<IBook> ActivateEvent(List<IBook> books)
         {
             List<IBook> result = new List<IBook>();
             var audioBook = books.Where(x => x.Type == BookType.audioBook);
@@ -60,7 +67,6 @@ namespace BookStore
                     result.Add(c);
             }
             return result;
-
         }
     }
 }
